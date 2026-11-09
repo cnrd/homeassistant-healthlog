@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a HealthLog integration problem without private health data
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include API tokens, raw health values, entity histories, storage files, or unredacted logs. Integration diagnostics are allowlisted."
+  - type: input
+    id: versions
+    attributes:
+      label: Integration, Home Assistant, HealthLog server and iOS versions
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected result and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Delivery sensor status or redacted integration diagnostics

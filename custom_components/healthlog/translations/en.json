@@ -1,0 +1,83 @@
+{
+  "title": "HealthLog",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to HealthLog",
+        "description": "Create a Measurement ingest token (measurements:write) in HealthLog Settings → API & Tokens. This connection holds one server URL and one account's token; all measurement profiles beneath it share those credentials. Add a separate connection for another person/account. Home Assistant persons are not automatically identified. LAN and remote servers are supported; a LAN server needs no internet access. HTTPS is the default with certificate verification and no HTTP fallback. Plain HTTP exposes API tokens and health measurements to anyone capable of observing the connection and requires the explicit option below. Setup checks syntax only and creates no test measurements. Enable Write readings to Apple Health on the token if wanted; the HealthLog iOS app performs mirroring. Local tokens and queued data are not encrypted by this integration.",
+        "data": {"url": "HealthLog server URL", "token": "Measurement API token", "allow_insecure_http": "Allow insecure HTTP"},
+        "data_description": {"url": "Enter the server address, optional port and path prefix, for example healthlog.local:8443/healthlog. Without a scheme, https:// is added.", "allow_insecure_http": "Off by default. Enable only for an explicit http:// URL. HTTP exposes API tokens and health measurements to anyone capable of observing the connection. HTTPS certificates remain verified; there is no automatic HTTP fallback."}
+      },
+      "reauth_confirm": {
+        "title": "Replace HealthLog token",
+        "description": "Use a restricted token for the SAME HealthLog account. This updates credentials for every profile in this connection. The write-only API cannot reveal token owner or scope; verify both in HealthLog. Queued measurements retain their values and uncertain deliveries remain held. Keep the same hostname and path prefix; protocol and port may change for the same server. HTTPS certificates are always verified. Plain HTTP exposes tokens and health measurements to connection observers and requires the explicit option. No test measurement is created.",
+        "data": {"url": "HealthLog server URL", "token": "Replacement measurement API token", "allow_insecure_http": "Allow insecure HTTP"},
+        "data_description": {"url": "A scheme-less address uses HTTPS. Keep this connection pointed at the same server/account.", "allow_insecure_http": "Enable only for an explicit http:// URL. HTTP exposes API tokens and health measurements to anyone observing the connection. This never disables HTTPS verification or enables fallback."}
+      },
+      "reconfigure": {
+        "title": "Reconfigure HealthLog connection",
+        "description": "Connection changes apply to ALL measurement profiles beneath it. Use a restricted token for the SAME account on the same server; token owner/scope introspection is unavailable. Keep the same hostname and installation prefix; protocol and port may change. HTTPS certificates are always verified and there is no HTTP fallback. Plain HTTP exposes tokens and health measurements to observers and requires explicit opt-in. Edit a profile's own settings to change its trigger, mappings or timing; no additional token is needed.",
+        "data": {"url": "HealthLog server URL", "token": "Replacement measurement API token", "allow_insecure_http": "Allow insecure HTTP"},
+        "data_description": {"url": "Keep the same server and account. A scheme-less address uses HTTPS.", "allow_insecure_http": "HTTP is unencrypted and exposes API tokens and health measurements to observers. HTTPS verification remains enabled."}
+      }
+    },
+    "error": {
+      "invalid_url": "Enter a valid server address, optional port and path prefix, without embedded credentials, query or fragment. HTTPS is the default. An explicit http:// URL also requires Allow insecure HTTP.",
+      "invalid_token": "Enter the complete hlk_ measurement token without Bearer or whitespace. It is verified only on a real delivery.",
+      "server_change_not_allowed": "Keep the same hostname and path prefix. Protocol/port may change for that server. Create a separate connection for another server/account so queued data is not redirected."
+    },
+    "abort": {"already_configured": "This server and token already have a connection. Add a measurement profile beneath it instead.", "reauth_successful": "Token replaced for this connection and its profiles.", "reconfigure_successful": "Connection updated."}
+  },
+  "config_subentries": {
+    "profile": {
+      "entry_type": "Measurement profile",
+      "initiate_flow": {"user": "Add measurement profile"},
+      "step": {
+        "reconfigure": {
+          "title": "Measurement profile",
+          "description": "Edit or reconcile only this profile. Other profiles keep collecting independently. Deleting a profile while its connection is loaded deletes its local queue, including held measurements; disable the connection to retain data. Unattached stores are retained for safety until the connection is explicitly removed.",
+          "menu_options": {"profile": "Edit trigger, mappings and timing", "resolve": "Reconcile an uncertain delivery"}
+        },
+        "profile": {
+          "title": "Measurement profile",
+          "description": "This profile inherits its connection's server and token; it does not need separate credentials. Give it a name and a person-specific trigger, then add one mapping per metric. Read numeric states, attributes or Jinja results. Templates require an explicit result unit. Body water is mass (kg), never percentage. Only profiles containing blood glucose see a context step on the next screen. Notes force ordinary-route delivery, where an uncertain outcome requires reconciliation. Frozen queued events keep their original mappings and values. Saving enables future events only; existing/restored states are not imported.",
+          "data": {"name": "Profile name", "trigger_entity": "Measurement trigger", "trigger_attribute": "Trigger attribute (optional)", "trigger_mode": "Trigger identity format", "mappings": "Metric mappings", "description": "Optional device notes", "settling_delay": "Settling delay (seconds)", "freshness_window": "Freshness window (seconds)", "batch_delay": "Delivery/coalescing delay (seconds)", "queue_capacity": "Maximum queued events"},
+          "data_description": {"name": "For example Weight scale or Blood pressure. All profiles here deliver to the same HealthLog account.", "trigger_entity": "Choose a source already associated with the intended person. Different profiles can use different entities; person identification is not automatic.", "trigger_attribute": "Leave blank to use state, or enter the original timestamp/event-ID attribute.", "trigger_mode": "Timestamp: timezone-aware ISO date. Event ID: unique stable identity per measurement, not a reading or on/off state; time is first receipt time.", "settling_delay": "Capture late-arriving related values before freezing an immutable snapshot.", "freshness_window": "Reject readings last updated further before the trigger than this interval.", "batch_delay": "Coalesce changes and pace requests. Persisted server backoff takes priority."}
+        },
+        "glucose": {
+          "title": "Blood glucose context",
+          "description": "This profile contains blood glucose. Select the actual context for future readings. An existing selection is preserved for review, but no context is guessed for a new profile. Use separate context-specific profiles/triggers if it varies. Changes never alter frozen queued measurements. Non-glucose profiles skip this step.",
+          "data": {"glucose_context": "Glucose context"}
+        },
+        "resolve": {
+          "title": "Reconcile this profile's uncertain delivery",
+          "description": "First inspect HealthLog for this metric, original timestamp and actual value against source history. The integration cannot read records back. Confirming delivered removes the local record; confirming NOT stored permits another attempt and can duplicate data if your conclusion is wrong. If you cannot prove either outcome, leave it held. Retry cannot release uncertain records. Only this profile's queue is affected.",
+          "data": {"measurement": "Uncertain measurement", "resolution": "Verified outcome", "confirmed": "I checked HealthLog and understand the consequences"}
+        }
+      },
+      "error": {
+        "invalid_name": "Enter a profile name between 1 and 100 characters.",
+        "invalid_mapping": "Use unique supported metrics, valid timing limits and notes under 500 characters.",
+        "invalid_template": "Invalid Jinja syntax or template exceeds 8192 characters.",
+        "template_unit_required": "Specify the numeric template result's source unit.",
+        "mapping_source_required": "Every mapping needs an entity or a template.",
+        "mapping_attribute_source_required": "An attribute requires a source entity.",
+        "glucose_context_required": "Select the actual glucose context; never guess.",
+        "confirmation_required": "Select a current uncertain record and confirm you checked its outcome.",
+        "storage_error": "Local storage failed. The record was not acknowledged; fix storage and try again."
+      },
+      "abort": {"not_loaded": "Enable and load the connection/profile first.", "nothing_to_resolve": "This profile has no uncertain deliveries.", "resolved": "Verified outcome recorded for this profile.", "profile_not_available": "The profile draft is no longer available. Start adding or editing it again."}
+    }
+  },
+  "selector": {
+    "measurement_mapping": {
+      "fields": {
+        "type": {"name": "Measurement type (output unit)", "description": "Choose what the reading actually represents. Each type may appear once per profile. HRV means SDNN, not RMSSD."},
+        "entity_id": {"name": "Source entity", "description": "Reuse an entity for several attribute mappings. With a template it supplies value, a detached source snapshot, source_entity and a freshness anchor."},
+        "attribute": {"name": "Numeric attribute (optional)", "description": "Leave blank for the numeric entity state, otherwise enter the exact attribute key from Developer Tools → States."},
+        "value_template": {"name": "Value template (optional)", "description": "Jinja returning one finite number. Use value, source.state, source.attributes or source_entity for a selected entity; without one, use states() or state_attr(). Invalid output is rejected, never replaced with zero. Additional entity dependencies are tracked during settling."},
+        "unit": {"name": "Source/result unit", "description": "Direct mappings default to unit_of_measurement. For attributes, specify the actual unit. Templates require their result's unit. Never relabel water percentage as kg."}
+      }
+    }
+  }
+}

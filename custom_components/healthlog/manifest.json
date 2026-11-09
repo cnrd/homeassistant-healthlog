@@ -1,0 +1,13 @@
+{
+  "domain": "healthlog",
+  "name": "HealthLog",
+  "categories": ["health_wellbeing"],
+  "codeowners": ["@cnrd"],
+  "config_flow": true,
+  "documentation": "https://github.com/cnrd/homeassistant-healthlog",
+  "integration_type": "service",
+  "iot_class": "assumed_state",
+  "issue_tracker": "https://github.com/cnrd/homeassistant-healthlog/issues",
+  "requirements": [],
+  "version": "1.0.0-beta.1"
+}
