@@ -104,10 +104,69 @@ Do not simplify durable acknowledgement into an HTTP-success-only check.
 
 ## License and attribution
 
-The integration and its original notebook/pulse artwork are released under the
-[MIT license](../LICENSE). [The artwork renderer](../tools/create_brand.py)
-reproduces the shipped images. They are not Home Assistant logos or an assertion
-of official endorsement.
+The integration's own code is released under the [MIT license](../LICENSE).
+That license does **not** purport to relicense the HealthLog logo. Logo copyright
+and ownership remain with the [HealthLog project](https://github.com/MBombeck/HealthLog).
+
+### Official HealthLog logo
+
+HealthLog maintainer **MBombeck** explicitly authorized use of the unchanged logo
+in this integration on November 9, 2026:
+[permission and conditions](https://github.com/MBombeck/HealthLog/issues/1366#issuecomment-6746066303).
+Permission covers redistribution through **GitHub, HACS, Home Assistant Marketplace
+and `home-assistant/brands`**, to commercial and noncommercial users. Resizing
+and format conversion are permitted; the original logo design must stay unchanged.
+The listing must identify this as an independent community integration and link
+to HealthLog. The [README](../README.md) retains both the disclaimer and that link.
+Logo use does not imply official endorsement or ownership of the HealthLog brand.
+
+Official artwork sources in `MBombeck/HealthLog`:
+
+- [`public/logo-512.png`](https://github.com/MBombeck/HealthLog/blob/main/public/logo-512.png):
+  source for both shipped icons.
+- [`public/logo-readme.svg`](https://github.com/MBombeck/HealthLog/blob/main/public/logo-readme.svg):
+  official vector alternative, downloaded for reference but not rasterized or
+  duplicated in this repository.
+
+The assets were obtained directly from upstream revision
+[`f86a7a61e1e6226732474bfbdc5346748b2027e1`](https://github.com/MBombeck/HealthLog/tree/f86a7a61e1e6226732474bfbdc5346748b2027e1/public).
+The PNG's SHA-256 is
+`b17d9b736cec3937c024bba7da483cc94162b5839b8d5fbd37b89da2d3502569`.
+
+| Shipped file | Preparation |
+| --- | --- |
+| `custom_components/healthlog/brand/icon@2x.png` | Byte-for-byte copy of the upstream 512 × 512 RGBA PNG. |
+| `custom_components/healthlog/brand/icon.png` | 256 × 256 RGBA PNG, resized from that source with Pillow's Lanczos resampling. |
+
+No cropping, recoloring, redrawing, background replacement or composition changes
+are applied. The source's transparency and original canvas/margins are retained.
+The [preparation helper](../tools/create_brand.py) only copies/resizes supplied
+artwork; it no longer draws the retired generic icon. To reproduce these files,
+download the PNG from the pinned revision, then run:
+
+```sh
+uv run --with pillow==12.3.0 python tools/create_brand.py /path/to/logo-512.png
+```
+
+### Marketplace branding and optional submission
+
+The current [Home Assistant branding documentation](https://developers.home-assistant.io/docs/creating_integration_brand/)
+supports local `custom_components/<domain>/brand/` images since HA 2026.3,
+earlier than this integration's minimum HA version. The icon filenames and
+dimensions above match its requirements. Square icons also serve as logo
+fallbacks, so no additional variants are needed. The upstream PNG has transparent
+outer margins; these are deliberately retained to preserve the authorized artwork
+and exact native-size source, rather than applying the documentation's trimming
+guidance. A separate brands-repository review may require discussing that canvas.
+
+A `home-assistant/brands` submission is **optional**, already authorized by the
+HealthLog maintainer, and is not opened automatically. The
+[brands repository documentation](https://github.com/home-assistant/brands#marketplace-icons)
+describes local custom-integration images and Marketplace's latest-release image
+lookup/cache. Local assets take precedence after installation. Publishing these
+files in a future separately authorized release/catalog update may be needed for
+the new icon to appear in pre-installation listings; this change does not itself
+publish, tag, release or submit anything.
 
 HealthLog and Home Assistant are separate upstream projects with their own
 licenses and branding. The client does not incorporate upstream HealthLog server

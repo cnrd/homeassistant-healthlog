@@ -22,7 +22,7 @@ and the initial run link are recorded in [VALIDATION.md](VALIDATION.md).
 ## Publication gates
 
 - [x] Explicit maintainer authorization to publish/push as a prerelease.
-- [x] Review the license and original artwork for publication.
+- [x] Review the software license and [HealthLog logo permission](DEVELOPMENT.md#license-and-attribution).
 - [x] Review local tests and current validation results in the handoff.
 - [x] Run Hassfest and HACS on the public repository revision; both passed.
 - [x] Set GitHub description: **Home Assistant integration for durable measurement delivery to self-hosted HealthLog.**
@@ -76,8 +76,10 @@ Only one integration directory: `custom_components/healthlog/`. Marketplace/HACS
 installs that directory. Everything it imports is inside it; tests/tooling/docs
 are not runtime dependencies. No release ZIP layout override is needed.
 `translations/en.json` is the complete shipped translation (no strings.json).
-Local images are original transparent PNGs, 256px/512px, with no external license
-or Home Assistant logo. `tools/create_brand.py` reproduces them.
+Local `brand/icon.png` and `brand/icon@2x.png` are the official HealthLog logo,
+256px/512px, used under [explicit permission](DEVELOPMENT.md#license-and-attribution),
+not relicensed as MIT artwork. `tools/create_brand.py` prepares them from the
+upstream PNG without redrawing or restyling. No Home Assistant logo is used.
 
 The manifest uses service type and `assumed_state`: the integration issues
 outgoing writes and cannot poll the service or receive remote measurement state.

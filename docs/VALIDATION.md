@@ -64,8 +64,12 @@ documented in [API_CONTRACT.md](API_CONTRACT.md), nor constitute HACS catalog ap
 ## Publication checks
 
 The domain was absent from installed HA 2026.10.4 and the upstream core dev
-manifest URL at audit time. Shipped JSON parses, branding is original RGBA PNG
-(256/512px), and runtime predecessor-domain/auth/import searches have no matches.
+manifest URL at audit time. Shipped JSON parsed, and the then-shipped generic
+RGBA PNG branding (256/512px) passed validation. It has since been replaced by
+the official HealthLog logo under [maintainer permission](DEVELOPMENT.md#license-and-attribution);
+the executed checks above describe the original validation run, not a new test
+of later branding changes. Runtime predecessor-domain/auth/import searches had
+no matches.
 
 The maintainer authorized the initial push and beta prerelease. After the initial
 commit was pushed, the official authenticated HACS action passed all 10 checks:
@@ -76,3 +80,30 @@ validation failures are superseded by these executed results.
 
 This is still a beta release, not approval for the public Marketplace/HACS
 catalog. Apple Health/iOS remains outside the executed E2E scope.
+
+## Official-logo validation
+
+The branding replacement was checked locally on 2026-11-09, separately from the
+original software validation above:
+
+- Both official source assets (`public/logo-512.png` and
+  `public/logo-readme.svg`) downloaded successfully from the upstream revision
+  recorded in [the logo attribution](DEVELOPMENT.md#official-healthlog-logo).
+- Both shipped icons decode as RGBA PNGs with transparency: `icon.png` is
+  256 × 256 and `icon@2x.png` is 512 × 512. The 512px file is byte-identical to
+  upstream; the 256px pixels match a Lanczos resize of that source. Both were
+  opened and visually reviewed. The original source canvas was retained.
+- The official Hassfest container passed against the local working tree:
+  **1 integration, 0 invalid integrations**.
+- Ruff lint and formatting checks passed for the updated branding preparation
+  helper. No integration runtime Python, version, domain, manifest, HACS metadata
+  or software license was changed.
+- The official HACS action passed **all 10 checks** against published revision
+  `2923bc6afe1158655ca265d4fb96a04e2ed61a2f`. It retrieves public repository files,
+  so that result does **not** validate the unpushed replacement images. Their
+  format, dimensions and source fidelity were checked locally as described above;
+  rerun the action against the new revision after a separately authorized push.
+
+The README's independent-community disclaimer and official HealthLog link remain
+unchanged. No release, tag, push or brands-repository submission was performed
+as part of the branding replacement.
