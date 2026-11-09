@@ -1,5 +1,7 @@
 # Home Assistant → HealthLog end-to-end testing
 
+[Documentation index](README.md) · [Development setup](DEVELOPMENT.md) · [Validation record](VALIDATION.md)
+
 This suite runs **real services**, not the mocked HTTP fixtures in `tests/`:
 
 ```text
@@ -151,4 +153,4 @@ This is an API/event/lifecycle E2E suite, not a visual browser test of selector
 rendering. It does not test physical hardware, iOS, Apple Health, every possible
 storage/filesystem failure, or concurrent unrelated writers on another server.
 The upstream ordinary-identity and batch-timestamp collision limitations remain
-as documented in `API_CONTRACT.md`, even when every E2E assertion passes.
+as documented in [the API audit](API_CONTRACT.md), even when every E2E assertion passes.

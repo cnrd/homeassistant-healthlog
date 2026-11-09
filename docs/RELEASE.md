@@ -5,23 +5,19 @@ initial push and GitHub prerelease. Further releases require separate approval.
 
 Executed checks are recorded in [VALIDATION.md](VALIDATION.md).
 
+[Documentation index](README.md) · [Development](DEVELOPMENT.md)
+
 ## Local validation
 
-Use the exact pinned development dependencies (`uv.lock`) and Python 3.14:
-
-```sh
-uv sync --frozen --group dev
-uv run pytest
-uv run ruff check custom_components tests tools
-uv run ruff format --check custom_components tests tools
-uv run mypy
-docker run --rm --platform linux/amd64 -v "$PWD:/github/workspace" ghcr.io/home-assistant/hassfest
-```
+Follow [Development and testing](DEVELOPMENT.md#checks-before-a-pull-request)
+using the pinned dependencies and supported Python environment. Run its unit,
+lint/format, type-checking and [Hassfest/HACS checks](DEVELOPMENT.md#hassfest-and-hacs-validation)
+against the intended release revision, plus the [real-service E2E suite](E2E.md).
 
 The official HACS action needs published repository content and is not a fully
 offline validator. After the authorized initial push, it passed all 10 checks.
 GitHub Actions also passed the Python, Hassfest and HACS jobs. Executed results
-and the initial run link are recorded in `VALIDATION.md`.
+and the initial run link are recorded in [VALIDATION.md](VALIDATION.md).
 
 ## Publication gates
 
@@ -57,7 +53,8 @@ All 25 metrics are implemented deliberately, but full unattended durable retries
 are impossible for nine ordinary-route metrics and for measurements with notes
 under the audited public API. The safest behavior is implemented: uncertain
 writes stay durable and require explicit reconciliation. The API enhancement in
-`API_CONTRACT.md` is not present upstream. Token scope/owner introspection is
+[the API audit](API_CONTRACT.md#proposed-narrowly-scoped-upstream-improvements-not-implementedpublished)
+is not present upstream. Token scope/owner introspection is
 also unavailable, so setup cannot verify a token without a genuine event.
 
 The real HA → HealthLog fresh-install/recovery E2E suite passed locally, and

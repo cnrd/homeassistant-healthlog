@@ -6,6 +6,8 @@ This document records implementation evidence, not an assumed OpenAPI schema.
 No upstream source code was incorporated; wire identifiers and validation facts
 were independently implemented here. The upstream server has its own license.
 
+[Documentation index](README.md) · [User-facing reliability](RELIABILITY.md) · [Compatibility](CONFIGURATION.md#compatibility)
+
 ## Sources inspected
 
 All server paths below are relative to the
@@ -49,35 +51,15 @@ validation and binding on replacement remain an upstream API gap.
 
 ## Connection transport policy
 
-Setup, reauthentication, reconfiguration and runtime use the same URL validator.
-It accepts complete base URLs with optional ports and installation prefixes,
-normalizes scheme-less addresses to HTTPS, and rejects malformed/unsupported
-URLs and embedded credentials. HTTP requires both an explicit `http://` scheme
-and the per-entry `allow_insecure_http` setting (default false). That setting
-never disables HTTPS verification or enables downgrade fallback. It exposes the
-bearer token and health measurements to observers when HTTP is used, which all
-connection forms explain.
+The audited server selects a valid cookie session before considering a bearer
+token. The client therefore suppresses cached cookie values per request while
+using HA's shared session, preserving the connection's token identity.
+Authenticated redirects are never followed.
 
-The runtime uses `async_get_clientsession(hass)` with HA's default verified TLS
-connector and trusted certificate store. It does not create or close a private
-session, mutate shared headers/cookie values, or follow authenticated redirects.
-Request-local cookie overrides blank cached values (including both HealthLog
-session-cookie names), since the audited server selects a valid cookie session
-before considering a bearer token. This preserves each connection's token identity
-when using the shared session.
-
-Both LAN and remote instances are supported. No internet access is required for
-a LAN server; the manifest remains a write-only `assumed_state` service, not a
-cloud integration. Reconfiguration retains the same hostname/path safety guard
-for queued data, but permits explicit protocol/port changes on that server.
-
-Each connection config entry holds one server URL and one account's restricted
-token. Named measurement profiles are native `ConfigSubentryFlow` subentries;
-they inherit those credentials and cannot set their own URL/token. Every profile
-has a separate queue and stable identity. Credential failure pauses the affected
-connection's profiles and parent reauthentication updates all of them. Different
-accounts must use different connections. This beta1 layout is a full replacement;
-no earlier configuration/storage layout is read or migrated.
+The maintained client policy for verified HTTPS, explicit HTTP opt-in,
+certificates, cookies and credential replacement is in
+[Security](SECURITY.md#transport-security). User-facing URL, connection and
+profile instructions are in [Configuration](CONFIGURATION.md#create-and-manage-a-connection).
 
 ## Ordinary create route
 
@@ -93,8 +75,9 @@ Although the device batch route permits contextless glucose, we choose ordinary
 delivery to preserve an explicit context rather than silently erase it.
 
 Success is HTTP 201 `{data: <measurement>, error: null}`; cached replay can be
-HTTP 200. We verify ID, type, value, original instant at server millisecond
-precision, and `source: EXTERNAL`. A mismatched 2xx is uncertain, not success.
+HTTP 200. We verify a nonempty ID, type, canonical unit, finite numeric value,
+original instant at server millisecond precision, `source: EXTERNAL`, and any
+supplied notes or glucose context. A mismatched 2xx is uncertain, not success.
 409 `measurement.duplicate_timestamp` does not identify our immutable event/value
 and is never an acknowledgement.
 
@@ -138,8 +121,9 @@ overlapping profiles. No timestamps are artificially shifted to bypass this.
 
 ### Mapping coverage
 
-`transport.BATCH_TYPES` contains **16** exact mappings. The README lists all
-25 canonical types, units, ranges and chosen routes. Canonical ranges were
+`transport.BATCH_TYPES` contains **16** exact mappings. The
+[metric reference](METRICS.md#supported-measurements) lists all 25 canonical
+types, units, ranges and chosen routes. Canonical ranges were
 cross-checked against `value-ranges.ts`; units against `unit-map.ts`.
 
 Wire differences from canonical units:
@@ -184,6 +168,7 @@ Only an explicit pre-write refusal (400/401/403/404/413/422/429) clears that
 request's intent; 401/403 pause as appropriate. Cancellation leaves intent intact.
 Manual retry cannot release uncertain records. Reconciliation requires an
 explicit human check in HealthLog; no automatic deletion/recreation is performed.
+The actionable procedure is in [manual reconciliation](RELIABILITY.md#manual-reconciliation).
 
 ## Pacing
 

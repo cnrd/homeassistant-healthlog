@@ -1,5 +1,7 @@
 # Validation record
 
+[Documentation index](README.md) · [Development checks](DEVELOPMENT.md) · [E2E plan](E2E.md)
+
 Executed locally on 2026-11-09. Unit environment: macOS, Python 3.14.4,
 Home Assistant 2026.10.4 and pytest-homeassistant-custom-component 0.13.375.
 All inputs/accounts/measurements are synthetic. No production deployment or
