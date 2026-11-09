@@ -457,27 +457,6 @@ profile deletion while disabled) are retained rather than silently discarded.
 Deleting the connection explicitly removes all its owned profile stores,
 including unattached ones. **Disable the connection to retain its data instead**.
 
-## Replace the unpublished predecessor
-
-This is a fresh setup, not an upgrade migration. Do not run both integrations
-against the same source.
-
-1. Record/export profile settings, especially Jinja templates, attributes and units.
-2. Verify the old queue is empty and disable the old integration so it no longer
-   collects or delivers.
-3. Back up Home Assistant.
-4. Remove the old **config entry in Devices & services**, then remove its
-   `custom_components/healthlog_import/` files. Deleting Python files alone does
-   not remove the config entry. Restart.
-5. Install `custom_components/healthlog/` and add **HealthLog**.
-6. Create/select the intended account's restricted measurement token and enable
-   token mirroring if needed.
-7. Recreate mappings and timing; verify no old automation duplicates delivery.
-8. Produce one genuinely new event and verify it reaches HealthLog **once**.
-9. Verify the HealthLog iOS app eventually mirrors supported data to Apple Health.
-
-No old credential/queue/configuration formats or storage namespaces are read.
-
 ## Development and release status
 
 ```sh
