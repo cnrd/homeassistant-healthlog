@@ -13,11 +13,14 @@ credentials were used. The version remains **1.0.0-beta.1**.
 | `uv run ruff format --check custom_components tests tools` | Passed, 23 files |
 | `uv run mypy` | Passed, 12 integration source files |
 | Official Hassfest container (linux/amd64) | Passed, 1 integration, 0 invalid |
-| Official HACS action | **Blocked**: authentication works, but remote repository is empty |
+| Official HACS action | **Passed: all 10 checks**, against the public repository |
+| GitHub Actions validation | **Passed**: Python checks/tests, Hassfest and HACS ([initial run](https://github.com/cnrd/homeassistant-healthlog/actions/runs/42627984152)) |
 | Real Home Assistant → HealthLog E2E | **All 12 scenario groups passed**, 435.44 s |
 | Real-service versions | HA 2026.11.0 / HealthLog 1.47.1 / PostgreSQL 18.6 |
 | Apple Health/iOS | **Not performed; outside scope** |
-| Push, release, catalog submission, remote repository edits | **Not performed** |
+| Initial public push | Completed with maintainer authorization |
+| Repository description/topics/issues | Configured for publication |
+| Public catalog submission | **Not performed** |
 
 See [E2E_RESULTS.json](E2E_RESULTS.json) for exact image digests, public server
 version/build and individual check durations, and [E2E.md](E2E.md) for reproduction.
@@ -62,7 +65,12 @@ The domain was absent from installed HA 2026.10.4 and the upstream core dev
 manifest URL at audit time. Shipped JSON parses, branding is original RGBA PNG
 (256/512px), and runtime predecessor-domain/auth/import searches have no matches.
 
-Existing `gh` authentication was used for the official HACS action. It reached
-`cnrd/homeassistant-healthlog@main` but reported `Git Repository is empty.`
-The action checks remote content, not mounted local files. Publishing the code
-requires explicit authorization before that revision can be validated remotely.
+The maintainer authorized the initial push and beta prerelease. After the initial
+commit was pushed, the official authenticated HACS action passed all 10 checks:
+archive status, brands, description, information, categories, integration
+manifest, issues, license, topics and hacs.json. GitHub Actions also passed its
+Python, Hassfest and HACS jobs on the public revision. Earlier empty-repository
+validation failures are superseded by these executed results.
+
+This is still a beta release, not approval for the public Marketplace/HACS
+catalog. Apple Health/iOS remains outside the executed E2E scope.
