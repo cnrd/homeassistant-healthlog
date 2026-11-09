@@ -1,5 +1,23 @@
 # Release notes
 
+## v1.0.0-beta.2 — official HealthLog logo
+
+- Replace the generic integration icon with the official HealthLog logo under
+  [explicit maintainer permission](https://github.com/MBombeck/HealthLog/issues/1366#issuecomment-6746066303).
+  The native 512px PNG is unchanged; the 256px icon is a Lanczos resize.
+- Document logo ownership, permitted distribution and independent community
+  maintenance. The integration's MIT license does not relicense the logo.
+- Shorten the README and organize configuration, metrics, reliability,
+  troubleshooting, security and development guidance into linked guides.
+- No changes to delivery behavior, configuration or queue formats. Existing
+  beta1 connections and measurement profiles can be upgraded in place; do not
+  delete/recreate them or their queues for this update. Restart Home Assistant
+  after installation. Icon caches may take time to refresh.
+
+This remains a prerelease, not a public-catalog listing. All beta1 delivery and
+token-validation limitations below still apply; Apple Health/iOS is outside the
+tested scope. See [the reliability guide](docs/RELIABILITY.md).
+
 ## v1.0.0-beta.1 — first publication candidate
 
 - New `healthlog` integration in standard Marketplace/HACS layout.

@@ -1,7 +1,7 @@
 """Integration constants."""
 
 DOMAIN = "healthlog"
-VERSION = "1.0.0-beta.1"
+VERSION = "1.0.0-beta.2"
 DEFAULTS = {
     "settling_delay": 10,
     "freshness_window": 120,

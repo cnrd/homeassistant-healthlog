@@ -1,7 +1,8 @@
 # Release checklist and current gates
 
-Initial release: **v1.0.0-beta.1**, not v1.0.0. The maintainer has authorized the
-initial push and GitHub prerelease. Further releases require separate approval.
+Current release target: **v1.0.0-beta.2**, not v1.0.0. The maintainer has authorized
+publishing beta2 with the official HealthLog logo. Further releases require
+separate approval. The initial prerelease was v1.0.0-beta.1.
 
 Executed checks are recorded in [VALIDATION.md](VALIDATION.md).
 
@@ -42,10 +43,10 @@ The domain was absent from the installed Home Assistant 2026.10.4 components and
 the upstream core `dev` manifest URL at audit time (404). This is a point-in-time
 check, not a reservation.
 
-This remains **beta1**, with a fresh connection/subentry layout. Earlier test
-configurations and storage are not supported or migrated. Remove those test
-entries and set up the new structure from scratch. No compatibility code is
-included for any prior deployment/layout.
+Beta2 preserves beta1's connection/subentry layout and queue format. Upgrade
+beta1 installations in place and restart HA; do not delete profiles or queues.
+Only the earlier unpublished, pre-beta1 test layouts remain unsupported and
+unmigrated. This is not a request to recreate existing beta1 installations.
 
 ## Why a prerelease?
 
@@ -60,7 +61,7 @@ also unavailable, so setup cannot verify a token without a genuine event.
 The real HA → HealthLog fresh-install/recovery E2E suite passed locally, and
 Hassfest/HACS validation passed on the public repository. Apple Health/iOS was
 excluded from testing, and no public catalog submission has been made. This
-release remains beta1 for controlled testing with the API limitations above;
+release remains beta2 for controlled testing with the API limitations above;
 passing validators does not imply catalog approval or exactly-once delivery for
 all metrics. A stable release requires a separate maintainer decision.
 

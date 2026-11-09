@@ -1,0 +1,105 @@
+{
+  "scope": "Home Assistant -> HealthLog only; Apple Health excluded",
+  "synthetic_data_only": true,
+  "mode": "full",
+  "images": {
+    "homeassistant": "ghcr.io/home-assistant/home-assistant:2026.11.0",
+    "healthlog": "ghcr.io/mbombeck/healthlog:v1.47.1",
+    "postgres": "postgres:18.6-alpine"
+  },
+  "image_digests": {
+    "homeassistant": [
+      "ghcr.io/home-assistant/home-assistant@sha256:c6c1ca9931036bf3a2c4cc088d8db25dfea3b33935a5ecc83c40349462e2f69e"
+    ],
+    "healthlog": [
+      "ghcr.io/mbombeck/healthlog@sha256:fb8df926350591b1b4353a4b7e21456fcfddfaaf4f7eefeb9d732524ad0862d5"
+    ],
+    "postgres": [
+      "postgres@sha256:123b17998ccaf47e53b502e8c6a1e79afd8f579c6f3eec83c563da026f957395"
+    ]
+  },
+  "executed_at": "2026-11-09T17:30:15.248675+00:00",
+  "duration_seconds": 436.51,
+  "results": [
+    {
+      "check": "real_services_started",
+      "result": "passed",
+      "healthlog_version_response": {
+        "data": {
+          "version": "1.47.1",
+          "buildSha": "5e1c39438fd4",
+          "builtAt": "2026-11-07T03:33:54Z",
+          "license": "PolyForm-Noncommercial-1.0.0",
+          "repository": "https://github.com/MBombeck/HealthLog",
+          "changelog": "https://github.com/MBombeck/HealthLog/blob/main/CHANGELOG.md",
+          "docs": "https://docs.healthlog.dev",
+          "offlineGeoEnabled": false,
+          "geoProviderHost": "ipwho.is"
+        },
+        "error": null
+      }
+    },
+    {
+      "check": "all_25_metrics_real_server_contract",
+      "result": "passed",
+      "seconds": 51.88
+    },
+    {
+      "check": "identical_readings_distinct_events_and_duplicate_trigger",
+      "result": "passed",
+      "seconds": 56.05
+    },
+    {
+      "check": "state_units_jinja_settling_and_account_isolation",
+      "result": "passed",
+      "seconds": 6.85
+    },
+    {
+      "check": "notes_preserved_via_ordinary_route",
+      "result": "passed",
+      "seconds": 2.89
+    },
+    {
+      "check": "shared_connection_subentries_add_edit_delete_and_settling",
+      "result": "passed",
+      "seconds": 19.98
+    },
+    {
+      "check": "pending_capture_survives_real_restart",
+      "result": "passed",
+      "seconds": 3.05
+    },
+    {
+      "check": "frozen_snapshot_and_inflight_cancellation_recovery",
+      "result": "passed",
+      "seconds": 4.65
+    },
+    {
+      "check": "https_defaults_http_opt_in_path_prefix_and_invalid_certificate",
+      "result": "passed",
+      "seconds": 7.9
+    },
+    {
+      "check": "lost_responses_durable_batch_dedup_and_explicit_reconciliation",
+      "result": "passed",
+      "seconds": 129.31
+    },
+    {
+      "check": "429_backoff_422_quarantine_and_retry_button",
+      "result": "passed",
+      "seconds": 125.33
+    },
+    {
+      "check": "real_revoked_token_401_and_reauthentication",
+      "result": "passed",
+      "seconds": 8.76
+    },
+    {
+      "check": "403_classification_redirect_refusal_and_entry_cleanup",
+      "result": "passed",
+      "seconds": 9.31
+    }
+  ],
+  "passed": true,
+  "containers_retained": false
+}

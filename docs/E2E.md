@@ -17,6 +17,14 @@ Home Assistant instance, or GitHub publication is involved.
 
 ## Latest execution
 
+**Beta2, 2026-11-09: all 12 scenario groups passed in 436.51 seconds.** The run
+used Home Assistant 2026.11.0, HealthLog 1.47.1 and PostgreSQL 18.6. Image digests
+and per-check durations are in [BETA2_E2E_RESULTS.json](BETA2_E2E_RESULTS.json).
+The original beta1 report below is retained as historical evidence. Both runs
+exclude Apple Health/iOS and use only synthetic, disposable data.
+
+### Original beta1 execution
+
 **2026-11-09: all 12 scenario groups passed in 435.44 seconds.** The run used
 Home Assistant 2026.11.0, HealthLog 1.47.1 (build `5e1c39438fd4`) and PostgreSQL
 18.6. Image digests and individual check durations are in
