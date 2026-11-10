@@ -216,13 +216,26 @@ do not configure this mapping. Changes affect new captures, not queued context.
 | --- | --- | --- | --- |
 | Settling delay | 10 seconds | 0–300 | Collect related late updates before freezing. |
 | Freshness window | 120 seconds | 0–600 | Reject source values updated too far before event receipt. |
-| Delivery/coalescing delay | 60 seconds | 1–300 | Coalesce changes and pace individual requests. |
+| Delivery/coalescing delay | 5 seconds | 1–300 | Coalesce changes and pace individual requests. |
 | Queue capacity | 500 events | 1–1000 | Bound pending, frozen and held events without evicting old ones. |
 
 One event can contain several metric records. Delivery uses one metric per
 request, even on the batch endpoint, at least two seconds apart per profile.
-At the default delay, a 25-metric event takes roughly 25 minutes to drain.
-Persisted server backoff takes priority over these timing settings.
+At the five-second default, five measurements use five requests with roughly
+20 seconds of pacing between the first and last, plus settling/coalescing and
+network time. This is not a fixed-time or global rate-limit guarantee: multiple
+profiles independently generate requests.
+
+Settling waits for related updates before freezing; freshness checks source age
+and does **not** add a delivery wait. Delivery delay coalesces changes and paces
+normal requests. Error backoff is separate and applies after delivery problems;
+persisted backoff and `Retry-After` take priority over the five-second setting.
+
+The new default applies to new profiles or settings not explicitly saved.
+Upgrading from beta2 does not rewrite existing profiles: a saved **60-second**
+delay remains 60 seconds. To opt in, use that profile's **Reconfigure → Edit
+trigger, mappings and timing** action and set **Delivery/coalescing delay** to 5.
+No connection, token, profile, queue or entity needs to be recreated.
 
 Reducing capacity does not evict records. Full queues and failed storage writes
 can prevent new events being admitted; the source history may need manual

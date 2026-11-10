@@ -46,8 +46,8 @@ public Marketplace/HACS catalog entry.
 1. Add `https://github.com/cnrd/homeassistant-healthlog` to Home Assistant's
    Marketplace custom repositories. In HACS, use **Custom repositories** and
    select category **Integration**; do not select `content_in_root`.
-2. Install **HealthLog**. Enable beta/prerelease versions if needed to select
-   the version shown on [GitHub releases](https://github.com/cnrd/homeassistant-healthlog/releases).
+2. Install **HealthLog**, selecting the stable version shown on
+   [GitHub releases](https://github.com/cnrd/homeassistant-healthlog/releases).
 3. Alternatively, download a release and copy only `custom_components/healthlog/`
    into your HA configuration's `custom_components/` directory.
 4. Restart when Home Assistant requests it, and always after replacing loaded code.
@@ -89,6 +89,10 @@ token's validity or owner; the first real delivery is the connection test.
 Only future identity changes are captured; startup/restored states are not imported.
 Edit a measurement profile through its own **Reconfigure** action. Edit the
 connection to replace credentials for all its profiles.
+
+New profiles default to a **five-second delivery delay**. Existing profiles keep
+their saved setting, including 60 seconds; change it through the profile's
+**Reconfigure** action if desired. Settling and freshness settings are unchanged.
 
 See the [configuration guide](docs/CONFIGURATION.md) for timing, templates,
 glucose context, multiple accounts and advanced examples.

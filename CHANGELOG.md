@@ -1,5 +1,33 @@
 # Release notes
 
+## v1.0.0 — first stable release
+
+- Production validation reported by the maintainer on beta2: two real Xiaomi
+  S400 weigh-ins reached HealthLog. The second also reached Apple Health through
+  the HealthLog iOS application without manually opening it. This is an observed
+  production workflow, not automated iOS coverage or a background-sync guarantee
+  for every measurement type or iOS condition.
+- Reduce the default delivery/coalescing delay from **60 to 5 seconds** for new
+  profiles. Keep the 1–300-second configuration range, 10-second default settling,
+  120-second default freshness and two-second minimum request interval unchanged.
+- Existing profiles retain their saved delay, including **60 seconds**. To use
+  five seconds, change it explicitly through that profile's Reconfigure flow.
+- Preserve singleton requests, durable queues/frozen measurements/event identities,
+  acknowledgement rules, endpoint selection (including ordinary delivery with
+  device notes), retry/backoff/`Retry-After`, and uncertain-delivery reconciliation.
+  The five-second setting is per profile, not a global rate-limit guarantee.
+- Beta2 installations upgrade **in place** with unchanged configuration/storage
+  formats. Keep connections, restricted tokens, profiles, queues and entity
+  registrations; no migration or recreation is needed. Restart HA after updating.
+- Retain the official HealthLog logo and its permission/attribution, independent
+  community status and existing HACS/Marketplace packaging.
+
+Stable does not mean unconditional exactly-once delivery. HealthLog's ordinary
+endpoint still lacks a durable client event-ID contract; uncertain ordinary
+writes require manual reconciliation. Durable batch IDs do not prevent all
+timestamp collisions from other writers. Read [Reliability](docs/RELIABILITY.md).
+No public catalog or `home-assistant/brands` submission is included.
+
 ## v1.0.0-beta.2 — official HealthLog logo
 
 - Replace the generic integration icon with the official HealthLog logo under

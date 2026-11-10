@@ -14,8 +14,21 @@ Synthetic HA state events
 
 **Apple Health and iOS are excluded.** No production server, token, sensor,
 Home Assistant instance, or GitHub publication is involved.
+The separate maintainer-reported [production observation](VALIDATION.md#production-observation)
+does not expand this automated suite's scope.
 
 ## Latest execution
+
+**Stable 1.0.0, 2026-11-10: all 13 scenario groups passed in 468.70 seconds.**
+The new default-delay scenario delivered five measurements as five individual
+requests with five-second delivery pacing and 10-second settling, then drained
+the durable queue. Full results and image digests are in
+[V1_0_0_E2E_RESULTS.json](V1_0_0_E2E_RESULTS.json). HA 2026.11.0, HealthLog 1.47.1
+and PostgreSQL 18.6 were used. Disposable containers, networks, database volume
+and private generated credentials/workspace were cleaned up after the run.
+Apple Health/iOS is excluded; see the separate production observation above.
+
+### Beta2 execution
 
 **Beta2, 2026-11-09: all 12 scenario groups passed in 436.51 seconds.** The run
 used Home Assistant 2026.11.0, HealthLog 1.47.1 and PostgreSQL 18.6. Image digests
@@ -83,6 +96,10 @@ its internal-only network also prevents external egress.
 
 ## Assertions
 
+- The new-profile delivery default is five seconds. A five-metric event at that
+  setting, with 10-second settling, makes five individual successful requests
+  and drains its durable queue while retaining the event identity. Other
+  scenarios explicitly use shorter delays to keep their execution bounded.
 - All 25 metrics reach the real database with correct values, canonical units,
   original timestamps, restricted-token linkage and server-assigned `EXTERNAL`.
 - The real glucose validator accepts the explicitly configured context.

@@ -1,11 +1,11 @@
 """Integration constants."""
 
 DOMAIN = "healthlog"
-VERSION = "1.0.0-beta.2"
+VERSION = "1.0.0"
 DEFAULTS = {
     "settling_delay": 10,
     "freshness_window": 120,
-    "batch_delay": 60,
+    "batch_delay": 5,
     "queue_capacity": 500,
     "trigger_mode": "timestamp",
     "trigger_attribute": "",

@@ -41,8 +41,11 @@ readings, fix credentials or release ambiguous/identity-conflict holds.
    timezone-aware ISO value; stable event-ID mode needs a unique ID per event,
    not a reading or `on`/`off` state.
 4. Inspect the sensor's queue count, rejection counters and error. Allow for
-   settling, the delivery delay, multiple metrics and any backoff. At default
-   pacing a 25-metric event takes roughly 25 minutes to drain.
+   settling, the delivery delay, multiple metrics and any backoff. New profiles
+   use a five-second delivery delay and singleton requests. Five measurements
+   need roughly 20 seconds of pacing between first and last, plus settling,
+   coalescing and network time. Upgraded profiles retain their saved delay;
+   change a saved 60 seconds to 5 through that profile's Reconfigure action.
 5. If the queue is empty but local rejection counts rose, follow the
    [invalid/stale checks](#invalid-or-stale-readings). If the queue is held, do
    not recreate the profile or fake a new event ID to force export.

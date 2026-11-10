@@ -179,9 +179,13 @@ protection; see [the API gap](API_CONTRACT.md#healthkit-oriented-batch-route).
 Backoff and next-attempt times are persisted per profile. Temporary failures
 start at 120 seconds and grow exponentially to 3840 seconds, unless a longer
 `Retry-After` applies. Seconds and HTTP-date header formats are supported.
-Normal requests are at least two seconds apart per profile; the default
-delivery delay is longer. The server's aggregate limits still apply across
-profiles, other tokens and other clients.
+Normal requests are at least two seconds apart per profile; new profiles default
+to a five-second delivery delay. This paces successful singleton requests and
+coalesces changes, not retries after errors. Settling (default 10 seconds) waits
+for related updates; freshness (default 120 seconds) checks source age, not a
+delivery delay. Saved profile settings survive upgrades unchanged. The server's
+aggregate limits still apply across profiles, other tokens and other clients:
+five seconds per profile is not a global rate-limit guarantee.
 
 | Outcome | Integration behavior |
 | --- | --- |

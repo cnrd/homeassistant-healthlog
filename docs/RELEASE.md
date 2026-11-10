@@ -1,8 +1,9 @@
 # Release checklist and current gates
 
-Current release target: **v1.0.0-beta.2**, not v1.0.0. The maintainer has authorized
-publishing beta2 with the official HealthLog logo. Further releases require
-separate approval. The initial prerelease was v1.0.0-beta.1.
+Current release target: **v1.0.0**, the first stable release. The maintainer has
+authorized publishing it after production validation of beta2 and the full
+regression suite. Further releases require separate approval. Existing beta1
+and beta2 tags must not be changed.
 
 Executed checks are recorded in [VALIDATION.md](VALIDATION.md).
 
@@ -22,19 +23,22 @@ and the initial run link are recorded in [VALIDATION.md](VALIDATION.md).
 
 ## Publication gates
 
-- [x] Explicit maintainer authorization to publish/push as a prerelease.
+- [x] Explicit maintainer authorization to publish/push **v1.0.0 as stable**.
 - [x] Review the software license and [HealthLog logo permission](DEVELOPMENT.md#license-and-attribution).
 - [x] Review local tests and current validation results in the handoff.
 - [x] Run Hassfest and HACS on the public repository revision; both passed.
 - [x] Set GitHub description: **Home Assistant integration for durable measurement delivery to self-hosted HealthLog.**
 - [x] Set topics: `home-assistant`, `custom-integration`, `healthlog`, `hacs`, `health`, `self-hosted`.
-- [x] Keep GitHub issues enabled and align beta prerelease metadata/tag version.
+- [x] Keep GitHub issues enabled; align internal `1.0.0` and annotated `v1.0.0` tag.
 - [x] Review repository contents/packaging for private data and generated files.
-- [x] Test a fresh installation and multiple entries on a disposable HA against
-  real HealthLog: all 12 E2E scenario groups passed (see `E2E_RESULTS.json`).
-- [ ] With maintainer consent, separately verify the intended deployment and
-  eventual iOS mirroring. Apple Health/iOS is outside the automated HA → HealthLog
-  E2E scope and has not been tested.
+- [x] Prior beta1/beta2 disposable-service E2E runs passed; retain their reports.
+- [x] Stable regression: 347 tests, 93% coverage, and all 13 real-service E2E
+  groups passed, including five singleton requests at the five-second default
+  (see [the stable validation record](VALIDATION.md#stable-100-automated-validation)).
+- [x] Maintainer reported two real Xiaomi S400 weigh-ins reaching HealthLog on
+  beta2; the second reached Apple Health through the iOS app without manually
+  opening it. See [production observation](VALIDATION.md#production-observation).
+  Apple Health/iOS remains outside automated E2E scope.
 - [ ] Verify `healthlog` remains unused by built-in Home Assistant integrations
   and is not occupied by another Marketplace repository at submission time.
 - [ ] Submit to the public catalog only after all required remote checks pass.
@@ -43,12 +47,14 @@ The domain was absent from the installed Home Assistant 2026.10.4 components and
 the upstream core `dev` manifest URL at audit time (404). This is a point-in-time
 check, not a reservation.
 
-Beta2 preserves beta1's connection/subentry layout and queue format. Upgrade
-beta1 installations in place and restart HA; do not delete profiles or queues.
+Stable preserves beta2's connection/subentry layout and queue format. Upgrade
+beta installations in place and restart HA; do not delete profiles or queues.
+Saved delivery delays remain unchanged, including 60 seconds. Opt into the new
+five-second default through each existing profile's Reconfigure flow if desired.
 Only the earlier unpublished, pre-beta1 test layouts remain unsupported and
 unmigrated. This is not a request to recreate existing beta1 installations.
 
-## Why a prerelease?
+## Stable release scope and limitations
 
 All 25 metrics are implemented deliberately, but full unattended durable retries
 are impossible for nine ordinary-route metrics and for measurements with notes
@@ -58,12 +64,13 @@ writes stay durable and require explicit reconciliation. The API enhancement in
 is not present upstream. Token scope/owner introspection is
 also unavailable, so setup cannot verify a token without a genuine event.
 
-The real HA → HealthLog fresh-install/recovery E2E suite passed locally, and
-Hassfest/HACS validation passed on the public repository. Apple Health/iOS was
-excluded from testing, and no public catalog submission has been made. This
-release remains beta2 for controlled testing with the API limitations above;
-passing validators does not imply catalog approval or exactly-once delivery for
-all metrics. A stable release requires a separate maintainer decision.
+Stable publication reflects the maintainer's observed production success and
+regression validation, not removal of upstream API limitations. Production
+evidence covers the two reported weigh-ins and one unattended iOS sync, not all
+metrics, recovery cases or background conditions. Automated HA → HealthLog E2E
+checks remain synthetic and exclude iOS/Apple Health. Passing validators and
+stable status do not imply public-catalog approval or exactly-once delivery.
+No catalog or brands-repository submission is part of this release.
 
 The batch reconciler can also update a same-timestamp/different-external-ID
 collision. Local timestamp claims block known collisions; unexpected server

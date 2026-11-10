@@ -2,6 +2,7 @@
 
 import asyncio
 from copy import deepcopy
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -10,8 +11,11 @@ from homeassistant.helpers.storage import Store
 
 from custom_components.healthlog import queue_id
 from custom_components.healthlog.api import APIError, AuthError
-from custom_components.healthlog.importer import Importer
+from custom_components.healthlog.importer import Importer, now
+from custom_components.healthlog.models import METRICS
+from custom_components.healthlog.sensor import StatusSensor
 from custom_components.healthlog.storage import DurableStore, Queue, QueueFull
+from custom_components.healthlog.transport import Transport
 
 from .conftest import measurement, mock_transport, queued
 
@@ -208,6 +212,65 @@ async def test_metric_partial_delivery_isolated(worker, freezer):
     await worker.deliver()
     assert worker.status()["quarantined_measurements"] == 1
     assert worker.queue.data["seen"] == []
+
+
+@pytest.mark.parametrize("delay", [5, 60, 1])
+@pytest.mark.parametrize("notes", ["", "Synthetic device note"])
+async def test_five_measurements_are_singleton_paced_and_drain(worker, freezer, delay, notes):
+    assert worker.options["batch_delay"] == 5
+    worker.options["batch_delay"] = delay
+    payload = [
+        {
+            **measurement(metric, f"ha:five-{metric}"),
+            "unit": METRICS[metric][0],
+            "value": value,
+            **({"notes": notes} if notes else {}),
+        }
+        for metric, value in [
+            ("WEIGHT", 60),
+            ("BODY_FAT", 20),
+            ("BODY_MASS_INDEX", 22),
+            ("PULSE", 70),
+            ("OXYGEN_SATURATION", 98),
+        ]
+    ]
+    api = AsyncMock()
+    api.post.side_effect = (
+        [{**item, "id": f"row-{index}", "source": "EXTERNAL"} for index, item in enumerate(payload)]
+        if notes
+        else [{"entries": [{"index": 0, "status": "inserted"}]} for _ in payload]
+    )
+    worker.transport = Transport(api)
+    worker.entry.runtime_data = SimpleNamespace(
+        workers={worker.subentry.subentry_id: worker}, stopping=False
+    )
+    sensor = StatusSensor(worker.entry, worker.subentry.subentry_id)
+    await worker.queue.add({"key": "five", "ready": True, "payload": deepcopy(payload)})
+    assert sensor.native_value == "pending"
+    interval = max(2, delay)
+    for index, item in enumerate(payload):
+        assert await worker.deliver() == interval
+        assert api.post.await_count == index + 1
+        path, body, key = api.post.call_args.args
+        assert key == item["externalId"]
+        if notes:
+            assert path == "/api/measurements"
+            assert body == {k: item[k] for k in ("type", "value", "measuredAt", "notes")}
+        else:
+            assert path == "/api/measurements/batch"
+            assert len(body["entries"]) == 1
+            assert body["entries"][0]["externalId"] == key
+        assert worker.queue.data["next_attempt"] == now() + interval
+        assert worker.status()["pending_measurements"] == 4 - index
+        assert sensor.native_value == ("ready" if index == 4 else "pending")
+        freezer.tick(interval - 1)
+        assert await worker.deliver() == 1
+        assert api.post.await_count == index + 1
+        freezer.tick(1)
+    assert not worker.queue.data["events"]
+    assert worker.queue.data["seen"] == ["five"]
+    assert worker.status()["last_success"]
+    assert worker.queue.data["failures"] == 0
 
 
 async def test_same_reading_distinct_events(worker, freezer):

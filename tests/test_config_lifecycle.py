@@ -17,6 +17,7 @@ from custom_components.healthlog.config_flow import (
     mapping_schema,
     validate_options,
 )
+from custom_components.healthlog.const import DEFAULTS
 from custom_components.healthlog.diagnostics import async_get_config_entry_diagnostics
 from custom_components.healthlog.models import identity
 
@@ -95,6 +96,79 @@ async def test_duplicate_connection_aborts(hass, entry):
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
+
+
+async def test_new_profile_defaults_to_five_second_delivery(hass, entry):
+    assert DEFAULTS["batch_delay"] == 5
+    assert DEFAULTS["settling_delay"] == 10
+    assert DEFAULTS["freshness_window"] == 120
+    await setup_entry(hass, entry)
+    flow = await profile_flow(hass, entry)
+    delay_key = next(key for key in flow["data_schema"].schema if key == "batch_delay")
+    assert delay_key.default() == 5
+    selector = flow["data_schema"].schema[delay_key]
+    assert selector.config["min"] == 1
+    assert selector.config["max"] == 300
+    options = {key: value for key, value in OPTIONS.items() if key != "batch_delay"}
+    with patch("custom_components.healthlog.importer.Importer.start"):
+        result = await submit_profile(hass, flow, options)
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    profile = next(p for p in entry.subentries.values() if p.title == "Another profile")
+    assert profile.data["batch_delay"] == 5
+    assert entry.runtime_data.workers[profile.subentry_id].options["batch_delay"] == 5
+
+
+@pytest.mark.parametrize("saved_delay", [60, 17])
+async def test_saved_delay_and_queue_survive_reload_and_reconfigure(hass, entry, saved_delay):
+    from homeassistant.helpers import entity_registry as er
+
+    subentry = only_profile(entry)
+    hass.config_entries.async_update_subentry(
+        entry, subentry, data={**subentry.data, "batch_delay": saved_delay}
+    )
+    original_config = deepcopy(dict(subentry.data))
+    connection_data = dict(entry.data)
+    await setup_entry(hass, entry)
+    worker = only_worker(entry)
+    item = await queued(worker, "FAT_MASS")
+    await worker.queue.hold(item["externalId"], "ambiguous")
+    original_queue = deepcopy(worker.queue.data)
+    registry = er.async_get(hass)
+    entities = {
+        entity.unique_id: entity.entity_id
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await setup_entry(hass, entry)
+    worker = only_worker(entry)
+    assert entry.data == connection_data
+    assert dict(subentry.data) == original_config
+    assert worker.options["batch_delay"] == saved_delay
+    assert worker.queue.data == original_queue
+    assert {
+        entity.unique_id: entity.entity_id
+        for entity in er.async_entries_for_config_entry(registry, entry.entry_id)
+    } == entities
+
+    flow = await profile_flow(hass, entry, subentry)
+    delay_key = next(key for key in flow["data_schema"].schema if key == "batch_delay")
+    assert delay_key.default() == saved_delay
+    options = {key: value for key, value in original_config.items() if key != "profile_id"}
+    with patch("custom_components.healthlog.importer.Importer.start"):
+        result = await submit_profile(hass, flow, options)
+        await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert only_worker(entry).options["batch_delay"] == saved_delay
+    assert worker.queue.data == original_queue
+
+    flow = await profile_flow(hass, entry, subentry)
+    with patch("custom_components.healthlog.importer.Importer.start"):
+        await submit_profile(hass, flow, {**options, "batch_delay": 5})
+        await hass.async_block_till_done()
+    assert only_worker(entry).options["batch_delay"] == 5
+    assert subentry.data["profile_id"] == original_config["profile_id"]
+    assert worker.queue.data == original_queue
 
 
 @pytest.mark.parametrize(

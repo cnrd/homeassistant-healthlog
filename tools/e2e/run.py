@@ -469,6 +469,7 @@ class Suite:
         account=0,
         notes="",
         settling=2,
+        delivery_delay=1,
         server_url=SERVER_URL,
         allow_http=False,
     ):
@@ -520,6 +521,11 @@ class Suite:
                 json={"handler": [entry_id, "profile"]},
             )
         require(flow.get("step_id") == "profile", "Subentry flow did not reach profile editor")
+        if delivery_delay is None:
+            delivery_delay = next(
+                field["default"] for field in flow["data_schema"] if field["name"] == "batch_delay"
+            )
+            require(delivery_delay == 5, "New profile delivery default is not five seconds")
         options = {
             "name": name,
             "trigger_entity": trigger,
@@ -532,7 +538,7 @@ class Suite:
             "description": notes,
             "settling_delay": settling,
             "freshness_window": 120,
-            "batch_delay": 1,
+            "batch_delay": delivery_delay,
             "queue_capacity": 100,
         }
         flow = await self.ha(
@@ -775,6 +781,48 @@ class Suite:
         )
         self.matrix_profile = profile
         self.matrix_attributes = attributes
+
+    async def five_measurements_default_delay(self):
+        before = len(self.rows())
+        values = {
+            "WEIGHT": 60,
+            "BODY_FAT": 20,
+            "BODY_MASS_INDEX": 22,
+            "PULSE": 70,
+            "OXYGEN_SATURATION": 98,
+        }
+        entity = "sensor.e2e_five"
+        await self.state(entity, "ready", values)
+        profile = await self.profile(
+            "five_default",
+            [
+                {
+                    "type": metric,
+                    "entity_id": entity,
+                    "attribute": metric,
+                    "unit": METRICS[metric][0],
+                }
+                for metric in values
+            ],
+            settling=10,
+            delivery_delay=None,
+        )
+        journal_before = len((await self.control())["journal"])
+        started = time.monotonic()
+        await self.trigger(profile)
+        await self.drained(timeout=70)
+        require(time.monotonic() - started >= 20, "Five singleton requests bypassed pacing")
+        require(len(self.rows()) == before + 5, "Five-metric event did not store five readings")
+        journal = (await self.control())["journal"][journal_before:]
+        require(len(journal) == 5, "Five-metric event did not make five individual requests")
+        require(
+            all(
+                item["path"] == "/api/measurements/batch" and item["status"] == 200
+                for item in journal
+            ),
+            "Default-delay measurements used an unexpected route",
+        )
+        require(self.queue(profile)["seen"], "Drained event identity was not retained")
 
     async def identical_reading_new_event(self):
         before = len(self.rows())
@@ -1300,6 +1348,9 @@ class Suite:
         await self.boot()
         await self.bootstrap()
         await self.check("all_25_metrics_real_server_contract", self.metric_matrix)
+        await self.check(
+            "five_singleton_measurements_at_default_delay", self.five_measurements_default_delay
+        )
         if configuration_smoke:
             await self.check(
                 "state_units_jinja_settling_and_account_isolation", self.state_template_isolation
