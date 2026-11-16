@@ -1,19 +1,25 @@
 # HealthLog for Home Assistant
 
-Send Home Assistant sensor measurements to your self-hosted
-[HealthLog](https://github.com/MBombeck/HealthLog) server using a restricted
-`measurements:write` token. Use any sensor manufacturer, with mappings from entity
-states, attributes or Jinja templates. A persistent delivery queue keeps captured
-measurements across restarts and handles retries.
+**Home Assistant sensors → HealthLog → optionally Apple Health.**
 
-One connection can serve multiple measurement profiles. Supported readings can
-optionally reach Apple Health through the **HealthLog iOS application**, not
-directly from Home Assistant.
+Send measurements from your existing Home Assistant entities to your self-hosted
+[HealthLog](https://github.com/MBombeck/HealthLog) server. Map numeric states,
+attributes, or Jinja templates to HealthLog measurements, regardless of sensor
+manufacturer.
+
+One HealthLog connection supports multiple named measurement profiles, each with
+its own event trigger, mappings, and persistent delivery queue. Captured
+measurements survive Home Assistant restarts and follow conservative retry and
+duplicate-prevention rules.
+
+**Optional Apple Health mirroring** happens through the HealthLog iOS app, with
+explicit permission on the measurement token. Home Assistant does not write to
+Apple Health directly.
 
 This is an independent, community-maintained integration—not an official
 HealthLog or Home Assistant product, and not a medical device or diagnostic tool.
-See [GitHub releases](https://github.com/cnrd/homeassistant-healthlog/releases)
-for available versions and prerelease notes.
+See the [stable releases](https://github.com/cnrd/homeassistant-healthlog/releases)
+for updates.
 
 ## Features
 
@@ -40,39 +46,53 @@ access. See [compatibility details](docs/CONFIGURATION.md#compatibility).
 <!-- ha-marketplace:exclude-start -->
 ## Installation
 
-The integration is available as a **custom repository**, not yet as an approved
-public Marketplace/HACS catalog entry.
+[![Open HealthLog in Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cnrd&repository=homeassistant-healthlog&category=integration)
 
-1. Add `https://github.com/cnrd/homeassistant-healthlog` to Home Assistant's
-   Marketplace custom repositories. In HACS, use **Custom repositories** and
-   select category **Integration**; do not select `content_in_root`.
-2. Install **HealthLog**, selecting the stable version shown on
-   [GitHub releases](https://github.com/cnrd/homeassistant-healthlog/releases).
-3. Alternatively, download a release and copy only `custom_components/healthlog/`
-   into your HA configuration's `custom_components/` directory.
-4. Restart when Home Assistant requests it, and always after replacing loaded code.
-5. Open **Settings → Devices & services → Add integration → HealthLog**.
+**Home Assistant 2026.11+:** Open **Settings → Marketplace**, search for
+**HealthLog**, select the integration and choose **Install**.
+
+**Home Assistant 2026.10.4–2026.10.x:** Open **HACS**, search for **HealthLog**
+in the integration catalog and install it. The badge above works with both
+Marketplace and older HACS installations.
+
+Restart Home Assistant after installation, then go to
+**Settings → Devices & services → Add integration → HealthLog**.
 
 [![Start HealthLog setup](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=healthlog)
+
+**Manual installation:** If you do not use Marketplace/HACS, download a
+[release](https://github.com/cnrd/homeassistant-healthlog/releases), copy
+`custom_components/healthlog/` into your Home Assistant configuration's
+`custom_components/` directory, and restart Home Assistant. You no longer
+need to add this project as a custom repository in Marketplace/HACS.
 <!-- ha-marketplace:exclude-end -->
 
-## Quick start
+## Quick start: your first measurement
 
-1. In HealthLog **Settings → API & Tokens → Measurement ingest token**, create
-   a restricted measurement token. Copy the complete `hlk_…` value, without `Bearer`.
-2. Optionally enable **Write readings to Apple Health** on that token.
-3. In Home Assistant, configure the HealthLog connection with its server URL and token.
-4. Setup continues with the first **measurement profile**. Later, use
-   **Add measurement profile** beneath the same connection—no extra token needed.
-5. Name the profile, select a measurement trigger and map one or more sensor values.
-6. Produce a genuinely new event and verify its account, value and timestamp in HealthLog.
+1. **Create a restricted token in HealthLog.** Go to
+   **Settings → API & Tokens → Measurement ingest token** and copy the complete
+   `hlk_…` token. Do not add `Bearer`. Some HealthLog versions call this
+   **API → Measurement tokens**.
+2. **Connect Home Assistant.** Add the **HealthLog** integration, then enter
+   your server URL and the restricted token.
+3. **Configure a measurement profile.** Name the source, select an entity that
+   produces a genuinely new timestamp or stable event ID for each measurement,
+   and map its numeric states/attributes (or templates) to the appropriate
+   HealthLog measurement types and source units.
+4. **Take a new measurement.** Confirm the values and timestamp in HealthLog.
+   Check the profile's **Delivery status** sensor if nothing appears.
+5. **Optionally enable Apple Health.** Turn on **Write readings to Apple Health**
+   for the token in HealthLog and configure HealthKit write permissions and
+   supported measurement directions in the HealthLog iOS app.
 
-A token belongs to a **specific HealthLog account**. Multiple measurement profiles
-can share that connection/token; separate accounts require separate connections.
-Sources must already identify the intended person—HA persons are not detected.
+A connection belongs to **one HealthLog account**. Profiles can share its
+token only when measurements belong to the same person; separate accounts
+require separate connections. Shared devices must identify the intended person
+in their source events—Home Assistant people are not detected automatically.
 
-Setup checks syntax without creating test readings. It cannot confirm a write-only
-token's validity or owner; the first real delivery is the connection test.
+Setup checks configuration syntax without creating a test reading. Because the
+token is write-only, setup cannot verify its owner or validity: the first real
+measurement is the connection test.
 
 ## Configuration overview
 
@@ -112,6 +132,19 @@ the identity, and timestamp mode. Add these mappings using the same source entit
 The source must provide a new timezone-aware timestamp for every measurement.
 Check your entity's real attribute names in **Developer Tools → States**; these
 names are examples, not automatic defaults. [More examples](docs/CONFIGURATION.md#examples).
+
+## Optional Apple Health sync
+
+HealthLog's iOS app can mirror supported measurements received from this
+integration into Apple Health. To use it, you need **HealthLog server 1.46.0+**,
+a compatible **HealthLog iOS 1.5.0+** app, HealthKit write permissions, and
+**Write readings to Apple Health** enabled for the restricted token.
+
+The server keeps the readings' source as `EXTERNAL`; it determines whether
+each reading is eligible for mirroring based on its token. Not every HealthLog
+measurement type is writable to Apple Health. Background mirroring is
+**eventual, not immediate**: iOS decides when the app gets background execution
+time. See [compatibility and configuration](docs/CONFIGURATION.md#compatibility).
 
 ## Supported measurements
 
